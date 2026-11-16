@@ -52,6 +52,10 @@ qu'afficher l'avancement (`credit_status` de la vue `pay_order_view`).
 
 Chaque client règle depuis le back-office de Cyllos : couleurs, logo, police, coins, fond animé, textes (titre, introduction, bouton, succès, aide), étape de confirmation et montants rapides. Le site lit ces réglages dans `pay_client_view` ; les valeurs « look » passent par des attributs `data-*` de `<body>` (liste blanche) stylés dans `public/css/pay.css`, les couleurs par `/{slug}/theme.css`. Les animations sont en CSS pur et désactivées avec `prefers-reduced-motion`.
 
+## Mise à jour depuis le back-office
+
+Après une première installation à la main (`install.sh`), les mises à jour se font depuis Cyllos, page « Mises à jour » : routes signées `POST /internal/update/status` et `/internal/update/deploy` (même secret `PAY_INTERNAL_SECRET`), qui lancent `deploy/self-update.sh` sous l'utilisateur PHP-FPM. Le dépôt doit donc être lisible et modifiable par cet utilisateur (`cyllospay`) et `git pull` doit marcher sans mot de passe pour lui. `deploy/update.sh` (root) reste disponible en secours. L'URL de la feuille de style porte sa date de modification (`asset_v`) : plus de CSS périmée gardée par le navigateur ou Cloudflare.
+
 ## Sécurité
 
 - En-têtes stricts (CSP `default-src 'none'`, `frame-ancestors 'none'`, `no-store`, etc.).

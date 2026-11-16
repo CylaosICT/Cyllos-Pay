@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>{% block title %}Paiement{% endblock %}</title>
-    <link rel="stylesheet" href="{{ asset('css/pay.css') }}">
+    <link rel="stylesheet" href="{{ asset_v('css/pay.css') }}">
     {% if client is defined and client is not null %}<link rel="stylesheet" href="{{ path('pay_theme', {slug: client.slug}) }}">{% endif %}
     {% block head %}{% endblock %}
 </head>
