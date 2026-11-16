@@ -54,6 +54,17 @@ class PayController extends AbstractController
     ) {
     }
 
+    /** The client's colours, as a stylesheet (no inline style: the CSP forbids it). */
+    #[Route(path: '/{slug}/theme.css', name: 'pay_theme', requirements: ['slug' => self::SLUG], methods: ['GET'])]
+    public function theme(string $slug): Response
+    {
+        $response = new Response($this->client($slug)->themeCss(), Response::HTTP_OK, ['Content-Type' => 'text/css; charset=UTF-8']);
+        $response->setPrivate();
+        $response->setMaxAge(60);
+
+        return $response;
+    }
+
     /** Step 1: which account? */
     #[Route(path: '/{slug}', name: 'pay_form', requirements: ['slug' => self::SLUG], methods: ['GET', 'POST'])]
     public function email(Request $request, string $slug): Response
@@ -85,6 +96,7 @@ class PayController extends AbstractController
 
                     return $this->redirectToRoute('pay_confirm', ['slug' => $slug]);
                 } catch (CheckoutRefused $e) {
+                    $this->logger->info('Cyllos refused the request: ' . $e->reason);
                     $error = $e->userMessage();
                 } catch (CheckoutUnavailable $e) {
                     $error = $this->unavailable($e);
@@ -175,6 +187,7 @@ class PayController extends AbstractController
                 try {
                     return new RedirectResponse($this->cyllos->start($slug, $email, $amountCents, $this->payerIp($request)), Response::HTTP_SEE_OTHER);
                 } catch (CheckoutRefused $e) {
+                    $this->logger->info('Cyllos refused the payment start: ' . $e->reason);
                     // The account or the amount no longer holds: send the payer back to fix it.
                     if ($e->reason === 'invalid_amount') {
                         return $this->redirectToRoute('pay_amount', ['slug' => $slug]);

@@ -7,7 +7,6 @@
 {% endblock %}
 
 {% block body %}
-    <h1>{{ client.name }}</h1>
 
     {% if order is null %}
         <p class="alert">Cette commande est introuvable.</p>
@@ -15,18 +14,26 @@
         {% set stage = order.stage %}
         {% set amount = (order.amountCents / 100)|number_format(2, ',', ' ') ~ ' €' %}
 
-        <ol class="progress" aria-label="Avancement">
-            <li class="{{ stage == 'awaiting_payment' ? 'current' : (stage == 'closed' ? '' : 'done') }}">Paiement</li>
-            <li class="{{ stage == 'crediting' ? 'current' : (stage in ['credited', 'needs_attention'] ? 'done' : '') }}">Crédit du compte</li>
-            <li class="{{ stage == 'credited' ? 'done' : '' }}">Terminé</li>
+        <ol class="steps progress" aria-label="Avancement">
+            {% set st = [
+                stage == 'awaiting_payment' ? 'current' : (stage == 'closed' ? '' : 'done'),
+                stage == 'crediting' ? 'current' : (stage in ['credited', 'needs_attention'] ? 'done' : ''),
+                stage == 'credited' ? 'done' : '',
+            ] %}
+            {% for label in ['Paiement', 'Crédit du compte', 'Terminé'] %}
+                <li class="{{ st[loop.index0] }}"><span class="n">{% if st[loop.index0] == 'done' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{% else %}{{ loop.index }}{% endif %}</span><span class="label">{{ label }}</span></li>
+            {% endfor %}
         </ol>
 
         {% if stage == 'credited' %}
-            <p class="success">Votre compte a été crédité de {{ amount }}. Merci !</p>
+            <div class="celebrate">
+                <svg class="checkmark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M14 27l8 8 16-17"/></svg>
+                <p class="success">Votre compte a été crédité de {{ amount }}. Merci !</p>
+            </div>
         {% elseif stage == 'crediting' %}
-            <p class="notice">Votre paiement de {{ amount }} a bien été reçu. Le crédit de votre compte est en cours : cette page se met à jour automatiquement.</p>
+            <p class="notice notice--wait"><span class="spinner" aria-hidden="true"></span>Votre paiement de {{ amount }} a bien été reçu. Le crédit de votre compte est en cours : cette page se met à jour automatiquement.</p>
         {% elseif stage == 'awaiting_payment' %}
-            <p class="notice">Votre paiement est en cours de confirmation par Stripe. Cette page se met à jour automatiquement.</p>
+            <p class="notice notice--wait"><span class="spinner" aria-hidden="true"></span>Votre paiement est en cours de confirmation par Stripe. Cette page se met à jour automatiquement.</p>
         {% elseif stage == 'needs_attention' %}
             <p class="alert">Votre paiement de {{ amount }} a bien été reçu, mais le crédit de votre compte n'a pas pu être effectué automatiquement. L'équipe a été informée et le traitera ; conservez votre référence.</p>
         {% else %}

@@ -25,7 +25,7 @@ class PayControllerTest extends WebTestCase
         $this->browser->disableReboot();
 
         $catalog = $this->createStub(ClientCatalog::class);
-        $catalog->method('findBySlug')->willReturnCallback(static fn (string $slug): ?PayClient => $slug === 'rollon' ? new PayClient('rollon', 'Le RolloN', 5, 250) : null);
+        $catalog->method('findBySlug')->willReturnCallback(static fn (string $slug): ?PayClient => $slug === 'rollon' ? new PayClient('rollon', 'Le RolloN', 5, 250, '#d97706', null, null, null, 'https://cyllos.example/uploads/client-logos/rollon.png') : null);
         self::getContainer()->set(ClientCatalog::class, $catalog);
 
         $this->cyllos = $this->createMock(CyllosCheckoutClient::class);
@@ -260,6 +260,25 @@ class PayControllerTest extends WebTestCase
         self::assertSelectorTextContains('.alert', 'introuvable');
 
         $this->browser->request('GET', '/rollon/retour/not-a-reference');
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testThemeStylesheetAndLogoAreServed(): void
+    {
+        $this->browser->request('GET', '/rollon/theme.css');
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString('--accent: #d97706', (string) $this->browser->getResponse()->getContent());
+        self::assertStringContainsString('text/css', (string) $this->browser->getResponse()->headers->get('Content-Type'));
+
+        $this->browser->request('GET', '/rollon');
+        self::assertSelectorExists('img.brand__logo[src="https://cyllos.example/uploads/client-logos/rollon.png"]');
+        self::assertSelectorExists('link[href="/rollon/theme.css"]');
+        self::assertStringContainsString("img-src 'self' data: https://cyllos.test;", (string) $this->browser->getResponse()->headers->get('Content-Security-Policy'));
+    }
+
+    public function testThemeOfUnknownClientIs404(): void
+    {
+        $this->browser->request('GET', '/inconnu/theme.css');
         self::assertResponseStatusCodeSame(404);
     }
 }
