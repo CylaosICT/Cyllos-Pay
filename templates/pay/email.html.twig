@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Alimenter mon compte – {{ client.name }}{% endblock %}
+
+{% block body %}
+    <h1>{{ client.name }}</h1>
+    {% include 'pay/_steps.html.twig' %}
+    <p class="lead">Alimentez votre compte en monnaie locale par carte bancaire. Commençons par retrouver votre compte.</p>
+
+    {% if cancelled %}
+        <p class="notice">Le paiement a été annulé. Vous pouvez recommencer ci-dessous.</p>
+    {% endif %}
+    {% if error %}
+        <p class="alert" role="alert">{{ error }}</p>
+    {% endif %}
+
+    {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+        {{ form_errors(form) }}
+        <div class="field">
+            {{ form_label(form.email) }}
+            {{ form_widget(form.email) }}
+            <small>L'adresse e-mail que vous avez utilisée pour votre compte en monnaie locale.</small>
+            {{ form_errors(form.email) }}
+        </div>
+        <button type="submit">Continuer</button>
+    {{ form_end(form) }}
+{% endblock %}

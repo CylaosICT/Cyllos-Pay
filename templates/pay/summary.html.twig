@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Récapitulatif – {{ client.name }}{% endblock %}
+
+{% block body %}
+    <h1>{{ client.name }}</h1>
+    {% include 'pay/_steps.html.twig' %}
+    <p class="lead">Vérifiez votre commande avant de payer.</p>
+
+    {% if error %}
+        <p class="alert" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <dl class="recap">
+        <dt>Compte à alimenter</dt>
+        <dd>{{ email }} ({{ accountType == 'professional' ? 'professionnel' : 'particulier' }})</dd>
+        <dt>Montant</dt>
+        <dd><strong>{{ (amountCents / 100)|number_format(2, ',', ' ') }} €</strong></dd>
+        <dt>Moyen de paiement</dt>
+        <dd>Carte bancaire, sur la page sécurisée de Stripe</dd>
+    </dl>
+
+    <form method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token('pay_summary') }}">
+        <button type="submit">Payer {{ (amountCents / 100)|number_format(2, ',', ' ') }} €</button>
+    </form>
+    <p><a href="{{ path('pay_amount', {slug: client.slug}) }}">Modifier le montant</a></p>
+{% endblock %}

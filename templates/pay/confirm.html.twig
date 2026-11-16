@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Confirmer le compte – {{ client.name }}{% endblock %}
+
+{% block body %}
+    <h1>{{ client.name }}</h1>
+    {% include 'pay/_steps.html.twig' %}
+
+    <p class="success">Compte trouvé.</p>
+    <dl class="recap">
+        <dt>Adresse e-mail</dt>
+        <dd>{{ email }}</dd>
+        <dt>Type de compte</dt>
+        <dd>{{ accountType == 'professional' ? 'Professionnel' : 'Particulier' }}</dd>
+    </dl>
+    <p>Le montant que vous allez payer sera crédité sur ce compte. Est-ce bien le bon ?</p>
+
+    <form method="post" class="actions">
+        <input type="hidden" name="_token" value="{{ csrf_token('pay_confirm') }}">
+        <button type="submit" name="action" value="continue">Oui, continuer</button>
+        <button type="submit" name="action" value="change" class="secondary">Non, changer d'adresse</button>
+    </form>
+{% endblock %}

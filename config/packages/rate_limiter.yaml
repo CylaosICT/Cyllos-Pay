@@ -1,0 +1,7 @@
+framework:
+    rate_limiter:
+        # Account checks and payment starts per payer IP (Cyllos limits again, per IP and per e-mail).
+        pay_attempt:
+            policy: sliding_window
+            limit: 30
+            interval: '10 minutes'

@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+
+    App\Pay\ClientCatalog: '@App\Pay\DbalClientCatalog'
+    App\Pay\OrderStatusReader: '@App\Pay\DbalOrderStatusReader'
+
+    Doctrine\DBAL\Connection:
+        factory: ['App\Pay\ConnectionFactory', 'create']
+        arguments: ['%env(DATABASE_URL)%']
+
+    App\Pay\CyllosCheckoutClient:
+        arguments:
+            $baseUrl: '%env(CYLLOS_BASE_URL)%'
+            $secret: '%env(PAY_INTERNAL_SECRET)%'
+
+when@test:
+    services:
+        # Public so functional tests can swap them for doubles.
+        App\Pay\ClientCatalog:
+            alias: App\Pay\DbalClientCatalog
+            public: true
+        App\Pay\OrderStatusReader:
+            alias: App\Pay\DbalOrderStatusReader
+            public: true
+        App\Pay\CyllosCheckoutClient:
+            autowire: true
+            public: true
+            arguments:
+                $baseUrl: '%env(CYLLOS_BASE_URL)%'
+                $secret: '%env(PAY_INTERNAL_SECRET)%'

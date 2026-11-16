@@ -1,0 +1,9 @@
+{# Progress through the guided flow. `step` is the current step (1-4). #}
+{% set labels = {1: 'Compte', 2: 'Confirmation', 3: 'Montant', 4: 'Paiement'} %}
+<ol class="steps" aria-label="Progression">
+    {% for number, label in labels %}
+        <li{% if number == step %} class="current" aria-current="step"{% elseif number < step %} class="done"{% endif %}>
+            <span class="n">{{ number }}</span> {{ label }}
+        </li>
+    {% endfor %}
+</ol>

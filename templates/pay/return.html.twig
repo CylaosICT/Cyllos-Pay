@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Votre paiement – {{ client.name }}{% endblock %}
+
+{% block head %}
+    {% if order is not null and order.inProgress %}<meta http-equiv="refresh" content="5">{% endif %}
+{% endblock %}
+
+{% block body %}
+    <h1>{{ client.name }}</h1>
+
+    {% if order is null %}
+        <p class="alert">Cette commande est introuvable.</p>
+    {% else %}
+        {% set stage = order.stage %}
+        {% set amount = (order.amountCents / 100)|number_format(2, ',', ' ') ~ ' €' %}
+
+        <ol class="progress" aria-label="Avancement">
+            <li class="{{ stage == 'awaiting_payment' ? 'current' : (stage == 'closed' ? '' : 'done') }}">Paiement</li>
+            <li class="{{ stage == 'crediting' ? 'current' : (stage in ['credited', 'needs_attention'] ? 'done' : '') }}">Crédit du compte</li>
+            <li class="{{ stage == 'credited' ? 'done' : '' }}">Terminé</li>
+        </ol>
+
+        {% if stage == 'credited' %}
+            <p class="success">Votre compte a été crédité de {{ amount }}. Merci !</p>
+        {% elseif stage == 'crediting' %}
+            <p class="notice">Votre paiement de {{ amount }} a bien été reçu. Le crédit de votre compte est en cours : cette page se met à jour automatiquement.</p>
+        {% elseif stage == 'awaiting_payment' %}
+            <p class="notice">Votre paiement est en cours de confirmation par Stripe. Cette page se met à jour automatiquement.</p>
+        {% elseif stage == 'needs_attention' %}
+            <p class="alert">Votre paiement de {{ amount }} a bien été reçu, mais le crédit de votre compte n'a pas pu être effectué automatiquement. L'équipe a été informée et le traitera ; conservez votre référence.</p>
+        {% else %}
+            <p class="alert">Le paiement n'a pas abouti et aucun montant n'a été débité.</p>
+        {% endif %}
+
+        <p>Référence : <strong>{{ order.reference }}</strong></p>
+    {% endif %}
+
+    <p><a href="{{ path('pay_form', {slug: client.slug}) }}">{{ order is not null and order.stage == 'credited' ? 'Faire un autre paiement' : 'Retour au début' }}</a></p>
+{% endblock %}
