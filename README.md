@@ -48,6 +48,10 @@ qu'afficher l'avancement (`credit_status` de la vue `pay_order_view`).
 5. Derrière un reverse proxy, déclarer `framework.trusted_proxies` : l'IP du payeur
    (`getClientIp()`) est transmise à Cyllos pour la limitation de débit par IP.
 
+## Personnalisation par client
+
+Chaque client règle depuis le back-office de Cyllos : couleurs, logo, police, coins, fond animé, textes (titre, introduction, bouton, succès, aide), étape de confirmation et montants rapides. Le site lit ces réglages dans `pay_client_view` ; les valeurs « look » passent par des attributs `data-*` de `<body>` (liste blanche) stylés dans `public/css/pay.css`, les couleurs par `/{slug}/theme.css`. Les animations sont en CSS pur et désactivées avec `prefers-reduced-motion`.
+
 ## Sécurité
 
 - En-têtes stricts (CSP `default-src 'none'`, `frame-ancestors 'none'`, `no-store`, etc.).

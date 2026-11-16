@@ -21,7 +21,7 @@
 
     <form method="post">
         <input type="hidden" name="_token" value="{{ csrf_token('pay_summary') }}">
-        <button type="submit">Payer {{ (amountCents / 100)|number_format(2, ',', ' ') }} €</button>
+        <button type="submit">{{ client.buttonText((amountCents / 100)|number_format(2, ',', ' ') ~ ' €') }}</button>
     </form>
     <p><a href="{{ path('pay_amount', {slug: client.slug}) }}">Modifier le montant</a></p>
 {% endblock %}

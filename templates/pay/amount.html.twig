@@ -14,6 +14,13 @@
             <small>Entre {{ client.minAmount }} € et {{ client.maxAmount }} €.</small>
             {{ form_errors(form.amount) }}
         </div>
+        {% if client.suggestedAmounts %}
+            <div class="chips" role="group" aria-label="Montants rapides">
+                {% for value in client.suggestedAmounts %}
+                    <button type="submit" name="quick" value="{{ value }}" class="chip" formnovalidate>{{ value }} €</button>
+                {% endfor %}
+            </div>
+        {% endif %}
         <button type="submit">Continuer</button>
     {{ form_end(form) }}
     <p><a href="{{ path('pay_confirm', {slug: client.slug}) }}">Retour</a></p>

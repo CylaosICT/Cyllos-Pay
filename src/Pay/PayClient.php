@@ -7,8 +7,13 @@ final readonly class PayClient
 {
     private const HEX = '/^#[0-9a-f]{6}$/i';
 
+    public const FONTS = ['modern', 'classic', 'rounded', 'mono'];
+    public const RADII = ['sharp', 'soft', 'round'];
+    public const BACKGROUNDS = ['aurora', 'shapes', 'plain'];
+
     /**
      * @param string|null $logoUrl absolute URL of the client's logo (served by Cyllos), if any
+     * @param list<int>   $quickAmounts suggested amounts in whole euros
      */
     public function __construct(
         public string $slug,
@@ -20,7 +25,79 @@ final readonly class PayClient
         public ?string $surfaceColor = null,
         public ?string $textColor = null,
         public ?string $logoUrl = null,
+        public ?string $font = null,
+        public ?string $radius = null,
+        public ?string $background = null,
+        public ?string $title = null,
+        public ?string $intro = null,
+        public ?string $buttonLabel = null,
+        public ?string $successMessage = null,
+        public ?string $supportText = null,
+        public bool $showConfirmStep = true,
+        public array $quickAmounts = [],
     ) {
+    }
+
+    /** Page heading: the client's own title, else its name. */
+    public function heading(): string
+    {
+        return self::text($this->title) ?? $this->name;
+    }
+
+    public function introText(): ?string
+    {
+        return self::text($this->intro);
+    }
+
+    public function successText(): ?string
+    {
+        return self::text($this->successMessage);
+    }
+
+    public function supportLine(): ?string
+    {
+        return self::text($this->supportText);
+    }
+
+    /** The pay button's label; {montant} becomes $amount (e.g. "20,00 €"). */
+    public function buttonText(string $amount): string
+    {
+        $label = self::text($this->buttonLabel);
+
+        return $label === null ? 'Payer ' . $amount : str_replace('{montant}', $amount, $label);
+    }
+
+    /**
+     * Quick amounts that fit the client's bounds.
+     *
+     * @return list<int>
+     */
+    public function suggestedAmounts(): array
+    {
+        return array_values(array_filter($this->quickAmounts, fn (int $a): bool => $a >= $this->minAmount && $a <= $this->maxAmount));
+    }
+
+    /** Whitelisted look keys, as data-* values on <body> (styled by pay.css, no inline style). */
+    public function fontKey(): string
+    {
+        return \in_array($this->font, self::FONTS, true) ? (string) $this->font : 'modern';
+    }
+
+    public function radiusKey(): string
+    {
+        return \in_array($this->radius, self::RADII, true) ? (string) $this->radius : 'soft';
+    }
+
+    public function backgroundKey(): string
+    {
+        return \in_array($this->background, self::BACKGROUNDS, true) ? (string) $this->background : 'aurora';
+    }
+
+    private static function text(?string $value): ?string
+    {
+        $value = $value === null ? '' : trim($value);
+
+        return $value === '' ? null : $value;
     }
 
     /**

@@ -28,7 +28,7 @@
         {% if stage == 'credited' %}
             <div class="celebrate">
                 <svg class="checkmark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M14 27l8 8 16-17"/></svg>
-                <p class="success">Votre compte a été crédité de {{ amount }}. Merci !</p>
+                <p class="success">{{ client.successText ?? ('Votre compte a été crédité de ' ~ amount ~ '. Merci !') }}</p>
             </div>
         {% elseif stage == 'crediting' %}
             <p class="notice notice--wait"><span class="spinner" aria-hidden="true"></span>Votre paiement de {{ amount }} a bien été reçu. Le crédit de votre compte est en cours : cette page se met à jour automatiquement.</p>

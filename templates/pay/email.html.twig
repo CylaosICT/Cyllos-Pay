@@ -4,7 +4,7 @@
 
 {% block body %}
     {% include 'pay/_steps.html.twig' %}
-    <p class="lead">Alimentez votre compte en monnaie locale par carte bancaire. Commençons par retrouver votre compte.</p>
+    <p class="lead">{{ client.introText ?? 'Alimentez votre compte en monnaie locale par carte bancaire. Commençons par retrouver votre compte.' }}</p>
 
     {% if cancelled %}
         <p class="notice">Le paiement a été annulé. Vous pouvez recommencer ci-dessous.</p>

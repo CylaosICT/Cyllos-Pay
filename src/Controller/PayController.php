@@ -94,6 +94,13 @@ class PayController extends AbstractController
                     $type = $this->cyllos->checkAccount($slug, $email, $this->payerIp($request));
                     $this->flow->startWithAccount($slug, $email, $type);
 
+                    if (!$client->showConfirmStep) {
+                        // This client skips the "is it the right account?" step.
+                        $this->flow->confirm($slug);
+
+                        return $this->redirectToRoute('pay_amount', ['slug' => $slug]);
+                    }
+
                     return $this->redirectToRoute('pay_confirm', ['slug' => $slug]);
                 } catch (CheckoutRefused $e) {
                     $this->logger->info('Cyllos refused the request: ' . $e->reason);
@@ -144,6 +151,7 @@ class PayController extends AbstractController
             return $this->redirectToStep($slug, $this->flow->reachableStep($slug));
         }
 
+        // A quick-amount chip is a submit button of the same form (no script on this site).
         $form = $this->createFormBuilder(['amount' => $this->flow->amountCents($slug) !== null ? $this->flow->amountCents($slug) / 100 : null], ['csrf_token_id' => 'pay_amount'])
             ->add('amount', NumberType::class, [
                 'label' => 'Montant (€)',
@@ -156,6 +164,13 @@ class PayController extends AbstractController
                 ],
             ])
             ->getForm();
+        $quick = $request->isMethod('POST') ? (string) $request->request->get('quick', '') : '';
+        if ($quick !== '' && ctype_digit($quick) && \in_array((int) $quick, $client->suggestedAmounts(), true)
+            && $this->isCsrfTokenValid('pay_amount', (string) ($request->request->all('form')['_token'] ?? ''))) {
+            $this->flow->setAmount($slug, (int) $quick * 100);
+
+            return $this->redirectToRoute('pay_summary', ['slug' => $slug]);
+        }
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
