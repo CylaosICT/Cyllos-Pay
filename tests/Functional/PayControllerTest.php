@@ -37,7 +37,7 @@ class PayControllerTest extends WebTestCase
         $this->browser->request('GET', '/');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Alimentez votre compte');
+        self::assertSelectorTextContains('h1', 'système de paiement des entreprises et associations');
         self::assertSelectorExists('.how__list li');
     }
 

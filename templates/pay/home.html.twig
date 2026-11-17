@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Cyllos Pay – Alimentez votre compte en monnaie locale{% endblock %}
-{% block robots %}<meta name="description" content="Cyllos Pay permet d'alimenter son compte en monnaie locale par carte bancaire, simplement et en toute sécurité.">{% endblock %}
+{% block title %}Cyllos Pay – Le système de paiement des entreprises et associations{% endblock %}
+{% block robots %}<meta name="description" content="Cyllos Pay est le système de paiement par carte bancaire, propulsé par Stripe, des entreprises et associations clientes de Cylaos ICT.">{% endblock %}
 
 {% block main %}
 <main class="landing">
@@ -13,12 +13,12 @@
     </header>
 
     <section class="hero">
-        <p class="hero__eyebrow">Monnaie locale · Paiement par carte</p>
-        <h1 class="hero__title">Alimentez votre compte en monnaie locale, <span>en quelques clics.</span></h1>
-        <p class="hero__lead">Cyllos Pay est le service de rechargement de votre monnaie locale : vous payez par carte bancaire, et votre compte est crédité automatiquement.</p>
+        <p class="hero__eyebrow">Paiement par carte · Propulsé par Stripe</p>
+        <h1 class="hero__title">Le système de paiement des entreprises et associations, <span>simple et sécurisé.</span></h1>
+        <p class="hero__lead">Cyllos Pay permet aux entreprises et associations clientes de Cylaos ICT, qui encaissent avec Stripe, de proposer à leurs membres et clients un paiement par carte bancaire fluide, avec un suivi automatique jusqu'à la confirmation.</p>
         <p class="hero__hint">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>
-            <span>Chaque association ou commerce dispose de son propre lien de paiement&nbsp;: utilisez celui qui vous a été communiqué, de la forme <strong>{{ app.request.host }}/<em>nom-de-la-structure</em></strong>.</span>
+            <span>Chaque entreprise ou association dispose de son propre lien de paiement&nbsp;: utilisez celui qui vous a été communiqué, de la forme <strong>{{ app.request.host }}/<em>nom-de-la-structure</em></strong>.</span>
         </p>
     </section>
 
@@ -28,7 +28,7 @@
             <li class="how__item">
                 <span class="how__n">1</span>
                 <h3>Votre e-mail</h3>
-                <p>Indiquez l'adresse e-mail de votre compte en monnaie locale.</p>
+                <p>Indiquez l'adresse e-mail associée à votre compte auprès de la structure.</p>
             </li>
             <li class="how__item">
                 <span class="how__n">2</span>
@@ -38,12 +38,12 @@
             <li class="how__item">
                 <span class="how__n">3</span>
                 <h3>Montant</h3>
-                <p>Choisissez la somme à ajouter, puis vérifiez le récapitulatif.</p>
+                <p>Choisissez la somme à régler, puis vérifiez le récapitulatif.</p>
             </li>
             <li class="how__item">
                 <span class="how__n">4</span>
                 <h3>Paiement</h3>
-                <p>Réglez par carte sur la page sécurisée de Stripe : le crédit arrive dans la foulée.</p>
+                <p>Réglez par carte sur la page sécurisée de Stripe : votre paiement est pris en compte dans la foulée.</p>
             </li>
         </ol>
     </section>
@@ -57,7 +57,7 @@
         <article class="feature">
             <span class="feature__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg></span>
             <h3>Rapide</h3>
-            <p>Dès le paiement confirmé, votre compte est crédité automatiquement, sans démarche de votre part.</p>
+            <p>Dès le paiement confirmé, il est enregistré automatiquement, sans démarche de votre part.</p>
         </article>
         <article class="feature">
             <span class="feature__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span>
@@ -71,7 +71,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
             Paiement sécurisé par carte bancaire via Stripe
         </p>
-        <p>Vous n'avez pas de lien de paiement&nbsp;? Rapprochez-vous de l'association ou du commerce qui gère votre monnaie locale.</p>
+        <p>Vous n'avez pas de lien de paiement&nbsp;? Rapprochez-vous de l'entreprise ou de l'association concernée. Vous êtes une structure cliente de Cylaos ICT&nbsp;? Contactez-nous pour activer Cyllos Pay avec votre compte Stripe.</p>
     </footer>
 </main>
 {% endblock %}
