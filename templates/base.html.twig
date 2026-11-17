@@ -25,6 +25,7 @@
         Paiement sécurisé par carte bancaire via Stripe
     </p>
     {% if client is defined and client is not null and client.supportLine %}<p class="support">{{ client.supportLine }}</p>{% endif %}
+    {% include 'legal/_links.html.twig' %}
 </main>
 {% endblock %}
 </body>

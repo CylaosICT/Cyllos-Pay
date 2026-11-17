@@ -1,0 +1,47 @@
+{% extends 'legal/_layout.html.twig' %}
+
+{% block title %}Conditions d'utilisation – Cyllos Pay{% endblock %}
+{% block legal_title %}Conditions d'utilisation{% endblock %}
+
+{% block legal_body %}
+<section>
+    <h2>1. Objet</h2>
+    <p>Les présentes conditions encadrent l'utilisation de Cyllos Pay, service édité par {{ legal.company }} qui permet de régler par carte bancaire une somme à une entreprise ou association (la «&nbsp;structure&nbsp;»), par exemple pour recharger un compte. En utilisant le service, vous les acceptez.</p>
+</section>
+<section>
+    <h2>2. Rôle de chacun</h2>
+    <ul>
+        <li>{{ legal.company }} fournit l'interface et le suivi du paiement. Elle n'est ni la vendeuse, ni la bénéficiaire du paiement, et ne détient pas les fonds.</li>
+        <li>La <strong>structure</strong> est votre cocontractante pour l'opération payée (recharge, adhésion, don, achat). Ses propres conditions s'appliquent à cette opération.</li>
+        <li>Le paiement par carte est traité par <strong>Stripe</strong>, selon ses propres conditions.</li>
+    </ul>
+</section>
+<section>
+    <h2>3. Déroulement</h2>
+    <p>Vous indiquez l'adresse e-mail de votre compte, confirmez qu'il s'agit du bon compte, choisissez un montant dans les limites fixées par la structure, vérifiez le récapitulatif puis réglez sur la page sécurisée de Stripe. Le paiement est ensuite enregistré automatiquement sur votre compte. Vous êtes responsable de l'exactitude de l'adresse e-mail saisie&nbsp;: vérifiez le compte affiché avant de payer.</p>
+</section>
+<section>
+    <h2>4. Prix et frais</h2>
+    <p>Le montant que vous validez au récapitulatif est le montant débité. Si des frais s'ajoutent, ils sont indiqués avant votre validation.</p>
+</section>
+<section>
+    <h2>5. Remboursement, rétractation et réclamations</h2>
+    <p>Les demandes de remboursement, de rétractation ou de réclamation concernant l'opération payée sont à adresser à la <strong>structure</strong>, qui décide des suites selon ses conditions et la loi applicable. Selon la nature de l'opération (par exemple un don ou une recharge de monnaie), le droit de rétractation peut ne pas s'appliquer. Pour un problème technique du service, contactez-nous à <a href="mailto:{{ legal.email }}">{{ legal.email }}</a>.</p>
+</section>
+<section>
+    <h2>6. Disponibilité et responsabilité</h2>
+    <p>Nous mettons en œuvre les moyens raisonnables pour que le service soit accessible et sûr, sans garantie d'une disponibilité continue (maintenance, incident chez Stripe ou chez la structure). Notre responsabilité ne saurait être engagée pour un dommage indirect, pour une erreur de saisie de votre part ou pour un manquement de la structure ou de Stripe. Ceci ne limite pas les droits que la loi vous reconnaît.</p>
+</section>
+<section>
+    <h2>7. Usage interdit</h2>
+    <p>Il est interdit d'utiliser le service de manière frauduleuse, d'utiliser une carte qui n'est pas la vôtre sans autorisation, de tenter de contourner les limites de sécurité ou de perturber le fonctionnement du site.</p>
+</section>
+<section>
+    <h2>8. Données personnelles</h2>
+    <p>Le traitement de vos données est décrit dans la <a href="{{ path('legal_privacy') }}">politique de confidentialité</a>.</p>
+</section>
+<section>
+    <h2>9. Droit applicable et litiges</h2>
+    <p>Ces conditions sont régies par le droit français. En cas de litige, contactez-nous d'abord pour rechercher une solution amiable. Si vous agissez en tant que consommateur, vous pouvez recourir gratuitement à un médiateur de la consommation, et saisir les tribunaux compétents selon les règles légales. La plateforme européenne de règlement en ligne des litiges est accessible sur <a href="https://ec.europa.eu/consumers/odr" rel="noopener noreferrer">ec.europa.eu/consumers/odr</a>.</p>
+</section>
+{% endblock %}

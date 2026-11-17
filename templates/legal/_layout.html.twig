@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block main %}
+<main class="legal">
+    <p class="legal__back"><a href="{{ path('pay_home') }}">&larr; Cyllos Pay</a></p>
+    <h1>{% block legal_title %}{% endblock %}</h1>
+    <p class="legal__updated">Dernière mise à jour : {{ legal.updated }}</p>
+    {% block legal_body %}{% endblock %}
+    {% include 'legal/_links.html.twig' %}
+</main>
+{% endblock %}

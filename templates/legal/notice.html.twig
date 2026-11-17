@@ -1,0 +1,42 @@
+{% extends 'legal/_layout.html.twig' %}
+
+{% block title %}Mentions légales – Cyllos Pay{% endblock %}
+{% block legal_title %}Mentions légales{% endblock %}
+
+{% block legal_body %}
+<section>
+    <h2>Éditeur du site</h2>
+    <p>
+        Le site <strong>Cyllos Pay</strong> est édité par <strong>{{ legal.company }}</strong>, {{ legal.form }}{% if legal.capital %} au capital de {{ legal.capital }}{% endif %}.<br>
+        Siège social : {{ legal.address }}<br>
+        SIREN : {{ legal.siren }} · SIRET du siège : {{ legal.siret }}{% if legal.rcs %} · RCS {{ legal.rcs }}{% endif %}<br>
+        N° de TVA intracommunautaire : {{ legal.vat }}<br>
+        Contact : <a href="mailto:{{ legal.email }}">{{ legal.email }}</a>
+    </p>
+    <p>Directeur de la publication : {{ legal.director }}.</p>
+</section>
+<section>
+    <h2>Hébergement</h2>
+    <p>
+        Le site est hébergé par <strong>{{ legal.host_name }}</strong>, {{ legal.host_address }} (<a href="{{ legal.host_site }}" rel="noopener noreferrer">{{ legal.host_site|replace({'https://': ''}) }}</a>).<br>
+        Les serveurs sont situés à {{ legal.host_location }}.
+    </p>
+</section>
+<section>
+    <h2>Paiement</h2>
+    <p>Les paiements par carte bancaire sont traités par <strong>Stripe Payments Europe, Ltd.</strong> (1 Grand Canal Street Lower, Grand Canal Dock, Dublin, Irlande), sur sa propre page sécurisée. Les données de carte bancaire ne transitent ni ne sont conservées par Cyllos Pay.</p>
+    <p>Le service est utilisé par des entreprises et associations clientes de {{ legal.company }}. Chacune reste responsable de l'objet du paiement (recharge, adhésion, don, etc.) et de la relation avec son payeur.</p>
+</section>
+<section>
+    <h2>Propriété intellectuelle</h2>
+    <p>Le site, son interface, ses textes et ses visuels sont la propriété de {{ legal.company }}, hors logos et marques des structures clientes et de Stripe, qui appartiennent à leurs titulaires. Toute reproduction non autorisée est interdite.</p>
+</section>
+<section>
+    <h2>Données personnelles</h2>
+    <p>Le traitement de vos données est décrit dans la <a href="{{ path('legal_privacy') }}">politique de confidentialité</a>.</p>
+</section>
+<section>
+    <h2>Signaler un contenu ou un problème</h2>
+    <p>Pour toute question ou signalement, écrivez à <a href="mailto:{{ legal.email }}">{{ legal.email }}</a>.</p>
+</section>
+{% endblock %}

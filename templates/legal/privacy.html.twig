@@ -1,0 +1,59 @@
+{% extends 'legal/_layout.html.twig' %}
+
+{% block title %}Politique de confidentialité – Cyllos Pay{% endblock %}
+{% block legal_title %}Politique de confidentialité{% endblock %}
+
+{% block legal_body %}
+<section>
+    <h2>Qui est responsable de vos données&nbsp;?</h2>
+    <p>Cyllos Pay est un service technique fourni par <strong>{{ legal.company }}</strong> ({{ legal.address }}) aux entreprises et associations qui l'utilisent.</p>
+    <ul>
+        <li>Pour les données liées à votre paiement (e-mail, montant, référence), la <strong>structure dont vous utilisez le lien de paiement</strong> décide de leur usage&nbsp;: elle est responsable du traitement, et {{ legal.company }} agit comme son sous-traitant.</li>
+        <li>Pour les données techniques de sécurité et de fonctionnement du site (voir ci-dessous), {{ legal.company }} est responsable du traitement.</li>
+    </ul>
+</section>
+<section>
+    <h2>Données traitées et finalités</h2>
+    <table class="legal__table">
+        <thead><tr><th>Données</th><th>Pourquoi</th><th>Base légale</th></tr></thead>
+        <tbody>
+            <tr><td>Adresse e-mail saisie</td><td>Retrouver votre compte auprès de la structure, créditer le bon compte, vous identifier dans le suivi du paiement</td><td>Exécution de votre demande de paiement</td></tr>
+            <tr><td>Montant, référence de commande, état et date du paiement, identifiants Stripe de la transaction</td><td>Exécuter, suivre et justifier le paiement</td><td>Exécution de votre demande, obligation comptable</td></tr>
+            <tr><td>Adresse IP</td><td>Limiter les tentatives abusives (fraude, automatisation)</td><td>Intérêt légitime (sécurité du service)</td></tr>
+            <tr><td>Cookie de session</td><td>Garder l'état de votre parcours entre les étapes</td><td>Strictement nécessaire au service</td></tr>
+        </tbody>
+    </table>
+    <p>Nous ne collectons ni votre numéro de carte ni votre cryptogramme&nbsp;: ils sont saisis uniquement sur la page de Stripe. Nous ne vendons pas vos données et ne les utilisons pas à des fins publicitaires ou de profilage.</p>
+</section>
+<section>
+    <h2>Cookies et traceurs</h2>
+    <p>Cyllos Pay n'utilise qu'<strong>un cookie de session</strong>, indispensable au déroulement du parcours de paiement (il n'est pas utilisé pour vous suivre). Il ne nécessite pas votre consentement et expire à la fermeture du navigateur. Le site n'utilise <strong>aucun outil de mesure d'audience, aucun traceur publicitaire et aucune police ou ressource chargée depuis un serveur tiers</strong>.</p>
+    <p>La page de paiement de Stripe, sur laquelle vous êtes redirigé, dépose ses propres cookies, régis par la <a href="https://stripe.com/fr/privacy" rel="noopener noreferrer">politique de confidentialité de Stripe</a>.</p>
+</section>
+<section>
+    <h2>Qui reçoit vos données&nbsp;?</h2>
+    <ul>
+        <li><strong>La structure</strong> dont vous utilisez le lien de paiement (et le système de comptes Cyclos qu'elle exploite), pour créditer votre compte.</li>
+        <li><strong>Stripe Payments Europe, Ltd.</strong> (Irlande), pour traiter le paiement. Stripe peut transférer des données hors de l'Union européenne, avec les garanties prévues par le RGPD (clauses contractuelles types, cadre de protection des données UE-États-Unis).</li>
+        <li><strong>{{ legal.host_name }}</strong>, hébergeur du site, en Suisse ({{ legal.host_location }}). La Suisse bénéficie d'une décision d'adéquation de la Commission européenne&nbsp;: vos données y sont protégées à un niveau équivalent à celui de l'Union.</li>
+    </ul>
+    <p>Aucune autre communication n'est faite, sauf obligation légale.</p>
+</section>
+<section>
+    <h2>Durées de conservation</h2>
+    <ul>
+        <li><strong>Cookie de session&nbsp;:</strong> jusqu'à la fermeture du navigateur.</li>
+        <li><strong>Adresse IP de sécurité&nbsp;:</strong> conservée de façon temporaire, le temps nécessaire à la limitation des abus.</li>
+        <li><strong>Données de paiement&nbsp;:</strong> le temps nécessaire au suivi du paiement, puis conservées uniquement pour la durée des obligations comptables et légales applicables (jusqu'à 10 ans pour les pièces comptables).</li>
+    </ul>
+</section>
+<section>
+    <h2>Vos droits</h2>
+    <p>Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données, dans les conditions prévues par le RGPD. Pour les exercer, écrivez à <a href="mailto:{{ legal.email }}">{{ legal.email }}</a> (nous transmettrons à la structure concernée si elle est responsable du traitement) ou directement à cette structure. Une réponse vous est apportée sous un mois.</p>
+    <p>Si vous estimez, après nous avoir contactés, que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la <a href="https://www.cnil.fr/fr/plaintes" rel="noopener noreferrer">CNIL</a> (3 place de Fontenoy, TSA 80715, 75334 Paris Cedex 07).</p>
+</section>
+<section>
+    <h2>Sécurité</h2>
+    <p>Les échanges sont chiffrés (HTTPS), les appels entre Cyllos Pay et le système de traitement des paiements sont signés, et les accès sont limités. En cas de violation de données susceptible de vous porter préjudice, vous et la CNIL en seriez informés conformément à la loi.</p>
+</section>
+{% endblock %}
