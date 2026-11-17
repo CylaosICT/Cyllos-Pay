@@ -54,6 +54,13 @@ class PayController extends AbstractController
     ) {
     }
 
+    /** Landing page: explains the principle to visitors who arrive without a client slug. */
+    #[Route(path: '/', name: 'pay_home', methods: ['GET'])]
+    public function home(): Response
+    {
+        return $this->render('pay/home.html.twig');
+    }
+
     /** The client's colours, as a stylesheet (no inline style: the CSP forbids it). */
     #[Route(path: '/{slug}/theme.css', name: 'pay_theme', requirements: ['slug' => self::SLUG], methods: ['GET'])]
     public function theme(string $slug): Response

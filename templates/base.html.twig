@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex">
+    {% block robots %}<meta name="robots" content="noindex">{% endblock %}
     <title>{% block title %}Paiement{% endblock %}</title>
     <link rel="stylesheet" href="{{ asset_v('css/pay.css') }}">
     {% if client is defined and client is not null %}<link rel="stylesheet" href="{{ path('pay_theme', {slug: client.slug}) }}">{% endif %}
@@ -11,6 +11,7 @@
 </head>
 <body{% if client is defined and client is not null %} data-font="{{ client.fontKey }}" data-radius="{{ client.radiusKey }}" data-bg="{{ client.backgroundKey }}"{% endif %}>
 <div class="backdrop" aria-hidden="true"><span></span><span></span><span></span></div>
+{% block main %}
 <main class="card">
     {% if client is defined and client is not null %}
         <header class="brand">
@@ -25,5 +26,6 @@
     </p>
     {% if client is defined and client is not null and client.supportLine %}<p class="support">{{ client.supportLine }}</p>{% endif %}
 </main>
+{% endblock %}
 </body>
 </html>

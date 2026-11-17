@@ -32,6 +32,15 @@ class PayControllerTest extends WebTestCase
         self::getContainer()->set(CyllosCheckoutClient::class, $this->cyllos);
     }
 
+    public function testHomePageDescribesTheServiceWithoutASlug(): void
+    {
+        $this->browser->request('GET', '/');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Alimentez votre compte');
+        self::assertSelectorExists('.how__list li');
+    }
+
     private function ip(): string
     {
         return '203.0.113.' . random_int(1, 250);
