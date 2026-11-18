@@ -12,35 +12,70 @@
         <p class="alert">Cette commande est introuvable.</p>
     {% else %}
         {% set stage = order.stage %}
-        {% set amount = (order.amountCents / 100)|number_format(2, ',', ' ') ~ ' €' %}
+        {% set reached = order.reachedSteps %}
+        {% set paid = client.money(order.amountCents) %}
+        {% set credit = client.creditText(order.amountCents, order.creditedCents) %}
 
-        <ol class="steps progress" aria-label="Avancement">
-            {% set st = [
-                stage == 'awaiting_payment' ? 'current' : (stage == 'closed' ? '' : 'done'),
-                stage == 'crediting' ? 'current' : (stage in ['credited', 'needs_attention'] ? 'done' : ''),
-                stage == 'credited' ? 'done' : '',
-            ] %}
-            {% for label in ['Paiement', 'Crédit du compte', 'Terminé'] %}
-                <li class="{{ st[loop.index0] }}"><span class="n">{% if st[loop.index0] == 'done' %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{% else %}{{ loop.index }}{% endif %}</span><span class="label">{{ label }}</span></li>
+        {#
+            Three steps the payer follows. Each one is shown as a loading step for a moment before it
+            validates, even when the information is already there, so every stage is visibly checked.
+            Steps already seen complete (page refresh) are shown as done at once; `s0..s2` position the
+            animation of the others (one beat each), `r0..r3` the message below the last of them.
+        #}
+        {% set steps = [
+            {title: 'Paiement confirmé par Stripe', wait: 'Confirmation par Stripe…', ok: 'Paiement de ' ~ paid ~ ' reçu', fail: "Le paiement n'a pas abouti"},
+            {title: 'Compte crédité', wait: 'Crédit de votre compte en cours…', ok: 'Votre compte a reçu ' ~ credit, fail: 'Crédit automatique impossible pour le moment'},
+            {title: 'Opération terminée', wait: 'Finalisation…', ok: 'Tout est à jour', fail: ''},
+        ] %}
+
+        <ol class="timeline" aria-label="Avancement de votre paiement">
+            {% for step in steps %}
+                {% set i = loop.index0 %}
+                {% if i < reached %}
+                    {% set kind = (stage == 'closed' and i == 0) or (stage == 'needs_attention' and i == 1) ? 'fail' : 'ok' %}
+                {% elseif i == reached and order.inProgress %}
+                    {% set kind = 'current' %}
+                {% else %}
+                    {% set kind = 'todo' %}
+                {% endif %}
+                {% set animated = kind == 'current' or (kind in ['ok', 'fail'] and i >= seen) %}
+                <li class="tl tl--{{ kind }}{% if animated %} is-anim s{{ i - min(seen, i) }}{% endif %}">
+                    <span class="tl__icon" aria-hidden="true">
+                        <span class="i-dot"></span>
+                        <span class="i-spin"></span>
+                        <svg class="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                        <svg class="i-cross" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                    </span>
+                    <span class="tl__text">
+                        <span class="tl__title">{{ step.title }}</span>
+                        <span class="tl__detail">
+                            {% if kind in ['ok', 'fail', 'current'] %}<span class="d-wait">{{ step.wait }}</span>{% endif %}
+                            {% if kind == 'ok' %}<span class="d-done">{{ step.ok }}</span>{% elseif kind == 'fail' %}<span class="d-done">{{ step.fail }}</span>{% endif %}
+                        </span>
+                        <span class="sr">{{ kind == 'ok' ? 'terminé' : (kind == 'fail' ? 'en échec' : (kind == 'current' ? 'en cours' : 'à venir')) }}</span>
+                    </span>
+                </li>
             {% endfor %}
         </ol>
 
-        {% if stage == 'credited' %}
-            <div class="celebrate">
-                <svg class="checkmark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M14 27l8 8 16-17"/></svg>
-                <p class="success">{{ client.successText ?? ('Votre compte a été crédité de ' ~ amount ~ '. Merci !') }}</p>
-            </div>
-        {% elseif stage == 'crediting' %}
-            <p class="notice notice--wait"><span class="spinner" aria-hidden="true"></span>Votre paiement de {{ amount }} a bien été reçu. Le crédit de votre compte est en cours : cette page se met à jour automatiquement.</p>
-        {% elseif stage == 'awaiting_payment' %}
-            <p class="notice notice--wait"><span class="spinner" aria-hidden="true"></span>Votre paiement est en cours de confirmation par Stripe. Cette page se met à jour automatiquement.</p>
-        {% elseif stage == 'needs_attention' %}
-            <p class="alert">Votre paiement de {{ amount }} a bien été reçu, mais le crédit de votre compte n'a pas pu être effectué automatiquement. L'équipe a été informée et le traitera ; conservez votre référence.</p>
-        {% else %}
-            <p class="alert">Le paiement n'a pas abouti et aucun montant n'a été débité.</p>
-        {% endif %}
+        <div class="reveal r{{ reached - min(seen, reached) }}">
+            {% if stage == 'credited' %}
+                <div class="celebrate">
+                    <svg class="checkmark" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M14 27l8 8 16-17"/></svg>
+                    <p class="success">{{ client.successText ?? ('Votre compte a été crédité de ' ~ credit ~ '. Merci !') }}</p>
+                </div>
+            {% elseif stage == 'crediting' %}
+                <p class="notice notice--wait"><span class="spinner" aria-hidden="true"></span>Votre paiement de {{ paid }} a bien été reçu. Le crédit de votre compte est en cours : cette page se met à jour automatiquement.</p>
+            {% elseif stage == 'awaiting_payment' %}
+                <p class="notice notice--wait"><span class="spinner" aria-hidden="true"></span>Votre paiement est en cours de confirmation par Stripe. Cette page se met à jour automatiquement.</p>
+            {% elseif stage == 'needs_attention' %}
+                <p class="alert">Votre paiement de {{ paid }} a bien été reçu, mais le crédit de votre compte n'a pas pu être effectué automatiquement. L'équipe a été informée et le traitera ; conservez votre référence.</p>
+            {% else %}
+                <p class="alert">Le paiement n'a pas abouti et aucun montant n'a été débité.</p>
+            {% endif %}
 
-        <p>Référence : <strong>{{ order.reference }}</strong></p>
+            <p class="reference">Référence : <strong>{{ order.reference }}</strong></p>
+        </div>
     {% endif %}
 
     <p><a href="{{ path('pay_form', {slug: client.slug}) }}">{{ order is not null and order.stage == 'credited' ? 'Faire un autre paiement' : 'Retour au début' }}</a></p>

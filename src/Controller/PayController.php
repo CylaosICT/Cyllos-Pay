@@ -11,6 +11,7 @@ use App\Pay\PayClient;
 use App\Pay\PayFlow;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormInterface;
@@ -36,6 +37,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 class PayController extends AbstractController
 {
     private const SLUG = '[a-z0-9][a-z0-9-]{0,99}';
+
+    /** Up to this many amounts are shown as tiles; more become a drop-down. */
+    private const MAX_TILES = 6;
 
     private const STEP_ROUTES = [
         PayFlow::STEP_EMAIL => 'pay_form',
@@ -158,32 +162,67 @@ class PayController extends AbstractController
             return $this->redirectToStep($slug, $this->flow->reachableStep($slug));
         }
 
-        // A quick-amount chip is a submit button of the same form (no script on this site).
-        $form = $this->createFormBuilder(['amount' => $this->flow->amountCents($slug) !== null ? $this->flow->amountCents($slug) / 100 : null], ['csrf_token_id' => 'pay_amount'])
-            ->add('amount', NumberType::class, [
-                'label' => 'Montant (€)',
-                'scale' => 2,
-                'html5' => true,
-                'attr' => ['min' => $client->minAmount, 'max' => $client->maxAmount, 'step' => '0.01', 'inputmode' => 'decimal'],
-                'constraints' => [
-                    new Assert\NotBlank(message: 'Saisissez un montant.'),
-                    new Assert\Range(min: $client->minAmount, max: $client->maxAmount, notInRangeMessage: 'Le montant doit être compris entre {{ min }} € et {{ max }} €.'),
-                ],
-            ])
-            ->getForm();
-        $quick = $request->isMethod('POST') ? (string) $request->request->get('quick', '') : '';
-        if ($quick !== '' && ctype_digit($quick) && \in_array((int) $quick, $client->suggestedAmounts(), true)
-            && $this->isCsrfTokenValid('pay_amount', (string) ($request->request->all('form')['_token'] ?? ''))) {
-            $this->flow->setAmount($slug, (int) $quick * 100);
+        $current = $this->flow->amountCents($slug);
 
-            return $this->redirectToRoute('pay_summary', ['slug' => $slug]);
-        }
-        $form->handleRequest($request);
+        if ($client->isFixed()) {
+            // A single amount, not editable: the step just shows it and asks to go on.
+            $form = $this->createFormBuilder(null, ['csrf_token_id' => 'pay_amount'])->getForm();
+            $form->handleRequest($request);
+            if ($form->isSubmitted() && $form->isValid()) {
+                $this->flow->setAmount($slug, (int) $client->fixedOffer()?->paidCents);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->flow->setAmount($slug, (int) round(((float) $form->get('amount')->getData()) * 100));
+                return $this->redirectToRoute('pay_summary', ['slug' => $slug]);
+            }
+        } elseif ($client->isList()) {
+            // One of the amounts the client offers: tiles for a few, a drop-down for many.
+            $choices = [];
+            foreach ($client->offers as $offer) {
+                $choices[PayClient::moneyShort($offer->paidCents) . ($offer->hasDifferentCredit() ? ' → ' . $client->creditShort($offer->paidCents, $offer->creditCents) : '')] = $offer->paidCents;
+            }
+            $form = $this->createFormBuilder(['offer' => $current !== null && $client->offerFor($current) !== null ? $current : null], ['csrf_token_id' => 'pay_amount'])
+                ->add('offer', ChoiceType::class, [
+                    'label' => 'Montant',
+                    'choices' => $choices,
+                    'expanded' => \count($choices) <= self::MAX_TILES,
+                    'placeholder' => 'Choisissez un montant',
+                    'invalid_message' => 'Choisissez un montant de la liste.',
+                    'constraints' => [new Assert\NotBlank(message: 'Choisissez un montant.')],
+                ])
+                ->getForm();
+            $form->handleRequest($request);
+            if ($form->isSubmitted() && $form->isValid() && $client->offerFor((int) $form->get('offer')->getData()) !== null) {
+                $this->flow->setAmount($slug, (int) $form->get('offer')->getData());
 
-            return $this->redirectToRoute('pay_summary', ['slug' => $slug]);
+                return $this->redirectToRoute('pay_summary', ['slug' => $slug]);
+            }
+        } else {
+            // A quick-amount chip is a submit button of the same form (no script on this site).
+            $form = $this->createFormBuilder(['amount' => $current !== null ? $current / 100 : null], ['csrf_token_id' => 'pay_amount'])
+                ->add('amount', NumberType::class, [
+                    'label' => 'Montant (€)',
+                    'scale' => 2,
+                    'html5' => true,
+                    'attr' => ['min' => $client->minAmount, 'max' => $client->maxAmount, 'step' => '0.01', 'inputmode' => 'decimal'],
+                    'constraints' => [
+                        new Assert\NotBlank(message: 'Saisissez un montant.'),
+                        new Assert\Range(min: $client->minAmount, max: $client->maxAmount, notInRangeMessage: 'Le montant doit être compris entre {{ min }} € et {{ max }} €.'),
+                    ],
+                ])
+                ->getForm();
+            $quick = $request->isMethod('POST') ? (string) $request->request->get('quick', '') : '';
+            if ($quick !== '' && ctype_digit($quick) && \in_array((int) $quick, $client->suggestedAmounts(), true)
+                && $this->isCsrfTokenValid('pay_amount', (string) ($request->request->all('form')['_token'] ?? ''))) {
+                $this->flow->setAmount($slug, (int) $quick * 100);
+
+                return $this->redirectToRoute('pay_summary', ['slug' => $slug]);
+            }
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                $this->flow->setAmount($slug, (int) round(((float) $form->get('amount')->getData()) * 100));
+
+                return $this->redirectToRoute('pay_summary', ['slug' => $slug]);
+            }
         }
 
         return $this->page('pay/amount.html.twig', $client, PayFlow::STEP_AMOUNT, $form, null, ['email' => $this->flow->email($slug)]);
@@ -200,6 +239,11 @@ class PayController extends AbstractController
 
         $email = (string) $this->flow->email($slug);
         $amountCents = (int) $this->flow->amountCents($slug);
+        $offer = $client->offerFor($amountCents);
+        if ($offer === null) {
+            // The client's amount rules changed since the amount was chosen.
+            return $this->redirectToRoute('pay_amount', ['slug' => $slug]);
+        }
         $error = null;
 
         if ($request->isMethod('POST') && $this->isCsrfTokenValid('pay_summary', (string) $request->request->get('_token'))) {
@@ -228,6 +272,7 @@ class PayController extends AbstractController
             'email' => $email,
             'accountType' => $this->flow->accountType($slug),
             'amountCents' => $amountCents,
+            'offer' => $offer,
         ]);
     }
 
@@ -238,7 +283,13 @@ class PayController extends AbstractController
         $client = $this->client($slug);
         $order = $this->orders->find($slug, $reference);
 
-        $response = $this->render('pay/return.html.twig', ['client' => $client, 'order' => $order]);
+        // Steps the payer already watched complete are shown as done at once (e.g. after the
+        // automatic refresh); only newly completed ones play the validation animation.
+        $seen = $order === null ? 0 : $this->flow->seenSteps($reference);
+        $response = $this->render('pay/return.html.twig', ['client' => $client, 'order' => $order, 'seen' => $seen]);
+        if ($order !== null) {
+            $this->flow->markSeen($reference, $order->reachedSteps());
+        }
         if ($order !== null && $order->status === 'paid') {
             // The payment is done: the in-progress flow state has no further use.
             $this->flow->reset($slug);

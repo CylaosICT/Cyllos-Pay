@@ -294,3 +294,115 @@ body:has(.landing) { place-items: start center; }
     .legal { padding: 26px 20px 20px; }
     .legal__table { display: block; overflow-x: auto; }
 }
+
+/* ---- Amount step: tiles, drop-down and single amount ---- */
+.field__label { display: block; margin-bottom: 8px; font-weight: 600; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.tile { position: relative; display: block; margin: 0; font-weight: inherit; cursor: pointer; animation: chip-in .45s var(--ease) both; }
+.tile:nth-child(2) { animation-delay: .05s; } .tile:nth-child(3) { animation-delay: .1s; } .tile:nth-child(4) { animation-delay: .15s; }
+.tile:nth-child(5) { animation-delay: .2s; } .tile:nth-child(6) { animation-delay: .25s; }
+.tile input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; opacity: 0; cursor: pointer; }
+.tile__body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 74px; padding: 12px 10px; text-align: center;
+    background: var(--soft); border: 1.5px solid var(--border); border-radius: var(--r-box);
+    transition: transform .18s var(--ease), border-color .2s, background .2s, box-shadow .2s;
+}
+.tile__amount { font-size: 1.25rem; font-weight: 700; letter-spacing: -.01em; }
+.tile__credit { font-size: .78rem; color: var(--muted); }
+.tile:hover .tile__body { transform: translateY(-2px); border-color: var(--accent); }
+.tile input:checked + .tile__body { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent); }
+.tile input:checked + .tile__body .tile__credit { color: var(--fg); }
+.tile input:focus-visible + .tile__body { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.select {
+    width: 100%; padding: 12px 14px; font: inherit; color: inherit; background: var(--soft);
+    border: 1px solid var(--border); border-radius: var(--r-ctl); transition: border-color .2s, box-shadow .2s;
+}
+.select:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); }
+.select option { color: #0f172a; background: #fff; }
+
+.amount-card {
+    display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0 0 20px; padding: 22px 16px; text-align: center;
+    background: var(--soft); border: 1px solid var(--border); border-radius: var(--r-box); animation: fade-up .5s var(--ease) .1s both;
+}
+.amount-card__label { font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.amount-card__value { font-size: 2.1rem; line-height: 1.15; letter-spacing: -.02em; }
+.amount-card__credit { font-size: .9rem; color: var(--muted); }
+.amount-card__credit strong { color: var(--ok); }
+.recap__credit { color: var(--ok); }
+
+/* ---- Return page: the three steps, each validated in turn ----
+   One beat (1.2 s) per newly completed step: s0..s2 give a step its start (--s) and end (--e),
+   r0..r3 delay the message that follows (--t). A step already seen complete has no s* class and
+   is drawn in its final state, so the automatic refresh never replays the sequence. */
+.s0 { --s: 0s; --e: 1.2s; } .s1 { --s: 1.2s; --e: 2.4s; } .s2 { --s: 2.4s; --e: 3.6s; }
+.r0 { --t: 0s; } .r1 { --t: 1.2s; } .r2 { --t: 2.4s; } .r3 { --t: 3.6s; }
+
+.timeline { list-style: none; margin: 0 0 22px; padding: 0; }
+.tl { position: relative; display: flex; gap: 14px; padding-bottom: 22px; }
+.tl:last-child { padding-bottom: 0; }
+.tl::before, .tl::after { /* connector down to the next step: a track, and the filled part on top of it */
+    content: ""; position: absolute; left: 15px; top: 34px; bottom: 2px; width: 2px; border-radius: 2px; background: var(--border);
+}
+.tl::after { background: var(--accent); opacity: 0; transform-origin: top; }
+.tl--ok::after { opacity: 1; }
+.tl:last-child::before, .tl:last-child::after { display: none; }
+
+.tl__icon {
+    position: relative; flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--card); border: 2px solid var(--border); color: var(--muted);
+}
+.tl__icon > * { grid-area: 1 / 1; }
+.i-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: .55; }
+.i-spin { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--border); border-top-color: var(--accent); opacity: 0; animation: spin .8s linear infinite; }
+.i-check, .i-cross { width: 16px; height: 16px; opacity: 0; }
+
+.tl--ok .tl__icon { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.tl--ok .i-check { opacity: 1; }
+.tl--fail .tl__icon { background: var(--err); border-color: var(--err); color: #fff; }
+.tl--fail .i-cross { opacity: 1; }
+.tl--ok .i-dot, .tl--fail .i-dot, .tl--current .i-dot { opacity: 0; }
+.tl--current .tl__icon { border-color: var(--accent); }
+.tl--current .i-spin { opacity: 1; }
+
+.tl__text { display: flex; flex-direction: column; min-width: 0; padding-top: 4px; }
+.tl__title { font-weight: 600; line-height: 1.3; }
+.tl--todo .tl__title { color: var(--muted); font-weight: 500; }
+.tl--fail .tl__title { color: var(--err); }
+.tl__detail { display: grid; font-size: .84rem; line-height: 1.4; color: var(--muted); overflow-wrap: anywhere; }
+.tl__detail > * { grid-area: 1 / 1; }
+.d-wait { opacity: 0; }
+.tl--current .d-wait { opacity: 1; }
+
+/* Animated steps (not yet seen complete). */
+.is-anim.tl--ok .i-dot, .is-anim.tl--fail .i-dot, .is-anim.tl--current .i-dot { animation: dot-life calc(var(--s) + .01s) linear backwards; }
+.is-anim.tl--ok .i-spin, .is-anim.tl--fail .i-spin { animation: spin .8s linear infinite, spin-life calc(var(--e) - var(--s)) linear var(--s); }
+.is-anim.tl--current .i-spin { animation: spin .8s linear infinite, fade-in .3s linear var(--s) backwards; }
+.is-anim.tl--ok .tl__icon, .is-anim.tl--fail .tl__icon { animation: icon-resolve .45s var(--ease) var(--e) backwards; }
+.is-anim.tl--current .tl__icon { animation: ring 2.4s ease-out var(--s) infinite, border-in .3s linear var(--s) backwards; }
+.is-anim.tl--ok .i-check, .is-anim.tl--fail .i-cross { animation: check-in .45s var(--ease) var(--e) backwards; }
+.is-anim.tl--ok .tl__title, .is-anim.tl--fail .tl__title { animation: fade-in .4s linear var(--e) backwards; }
+.is-anim.tl--ok .d-wait, .is-anim.tl--fail .d-wait { animation: wait-life calc(var(--e) - var(--s)) linear var(--s); }
+.is-anim.tl--ok .d-done, .is-anim.tl--fail .d-done { animation: detail-in .45s var(--ease) var(--e) backwards; }
+.is-anim.tl--current .d-wait { animation: detail-in .4s var(--ease) var(--s) backwards; }
+.is-anim.tl--ok::after { animation: line-drop .5s var(--ease) var(--e) backwards; }
+
+/* The message under the steps appears once the last animated one has validated. */
+.card > .reveal { animation: reveal-in .55s var(--ease) var(--t, 0s) backwards; }
+.reveal .checkmark circle { animation-delay: calc(var(--t, 0s) + .1s); }
+.reveal .checkmark path { animation-delay: calc(var(--t, 0s) + .7s); }
+.reveal .celebrate::before { animation-delay: var(--t, 0s); }
+.reference { margin: 14px 0 0; font-size: .86rem; color: var(--muted); text-align: center; }
+.reference strong { color: var(--fg); letter-spacing: .04em; }
+
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes reveal-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes dot-life { from, to { opacity: .55; } }
+@keyframes spin-life { 0%, 100% { opacity: 0; } 12%, 88% { opacity: 1; } }
+@keyframes wait-life { 0%, 100% { opacity: 0; } 12%, 88% { opacity: 1; } }
+@keyframes icon-resolve { from { background: var(--card); border-color: var(--border); color: var(--muted); transform: scale(.88); } 60% { transform: scale(1.14); } }
+@keyframes check-in { from { opacity: 0; transform: scale(.3) rotate(-35deg); } }
+@keyframes detail-in { from { opacity: 0; transform: translateY(5px); } }
+@keyframes border-in { from { border-color: var(--border); } }
+@keyframes line-drop { from { transform: scaleY(0); } }

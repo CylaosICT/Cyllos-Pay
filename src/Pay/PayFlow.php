@@ -66,6 +66,24 @@ final readonly class PayFlow
         return $this->read($slug)['amountCents'] ?? null;
     }
 
+    /** How many of the follow-up steps of an order the payer has already seen complete. */
+    public function seenSteps(string $reference): int
+    {
+        $seen = $this->requestStack->getSession()->get('pay_seen');
+
+        return \is_array($seen) && \is_int($seen[$reference] ?? null) ? $seen[$reference] : 0;
+    }
+
+    public function markSeen(string $reference, int $steps): void
+    {
+        $session = $this->requestStack->getSession();
+        $seen = $session->get('pay_seen');
+        $seen = \is_array($seen) ? $seen : [];
+        $seen[$reference] = max($steps, \is_int($seen[$reference] ?? null) ? $seen[$reference] : 0);
+        // Only the most recent orders are remembered.
+        $session->set('pay_seen', \array_slice($seen, -10, null, true));
+    }
+
     /** The furthest step the payer may open. */
     public function reachableStep(string $slug): int
     {

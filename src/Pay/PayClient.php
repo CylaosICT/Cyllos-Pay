@@ -11,9 +11,17 @@ final readonly class PayClient
     public const RADII = ['sharp', 'soft', 'round'];
     public const BACKGROUNDS = ['aurora', 'shapes', 'plain'];
 
+    /** How the payer picks the amount: any amount in a range, one of a list, or a single fixed amount. */
+    public const MODE_RANGE = 'range';
+    public const MODE_LIST = 'list';
+    public const MODE_FIXED = 'fixed';
+
     /**
      * @param string|null $logoUrl absolute URL of the client's logo (served by Cyllos), if any
-     * @param list<int>   $quickAmounts suggested amounts in whole euros
+     * @param list<int>   $quickAmounts suggested amounts in whole euros ("range" mode)
+     * @param list<AmountOffer> $offers the amounts to choose from ("list" mode) or the single one ("fixed" mode)
+     * @param float|null  $creditRate   "range" mode: units credited per euro paid (null = 1)
+     * @param string|null $creditUnit   name of the credited unit, e.g. "unités"
      */
     public function __construct(
         public string $slug,
@@ -35,7 +43,104 @@ final readonly class PayClient
         public ?string $supportText = null,
         public bool $showConfirmStep = true,
         public array $quickAmounts = [],
+        public string $amountMode = self::MODE_RANGE,
+        public array $offers = [],
+        public ?float $creditRate = null,
+        public ?string $creditUnit = null,
     ) {
+    }
+
+    public function isRange(): bool
+    {
+        // A list or fixed client without any usable offer falls back to a range rather than offering nothing.
+        return !$this->isFixed() && !$this->isList();
+    }
+
+    public function isFixed(): bool
+    {
+        return $this->amountMode === self::MODE_FIXED && \count($this->offers) === 1;
+    }
+
+    public function isList(): bool
+    {
+        return $this->amountMode === self::MODE_LIST && $this->offers !== [];
+    }
+
+    /** The single offer of a "fixed" client. */
+    public function fixedOffer(): ?AmountOffer
+    {
+        return $this->isFixed() ? $this->offers[0] : null;
+    }
+
+    /**
+     * What this client allows for an amount the payer wants to pay: the offer
+     * (paid + credited amounts), or null. Mirrors Cyllos' own rule, which is
+     * the one that actually decides when the payment starts.
+     */
+    public function offerFor(int $paidCents): ?AmountOffer
+    {
+        if ($this->isFixed() || $this->isList()) {
+            foreach ($this->offers as $offer) {
+                if ($offer->paidCents === $paidCents) {
+                    return $offer;
+                }
+            }
+
+            return null;
+        }
+
+        if ($paidCents < $this->minAmount * 100 || $paidCents > $this->maxAmount * 100) {
+            return null;
+        }
+
+        return new AmountOffer($paidCents, $this->creditRate === null ? $paidCents : (int) round($paidCents * $this->creditRate));
+    }
+
+    /** "1,5 unité(s) pour 1 €" in a sentence, for a range with a credit rate; null when the credit equals the payment. */
+    public function rateText(): ?string
+    {
+        if ($this->isRange() && $this->creditRate !== null && abs($this->creditRate - 1.0) > 0.00001) {
+            return \sprintf('1 € payé = %s %s', rtrim(rtrim(number_format($this->creditRate, 4, ',', ' '), '0'), ','), $this->unit(true));
+        }
+
+        return null;
+    }
+
+    /** Euros without useless decimals, e.g. "100 €" or "12,50 €" (tiles, chips, drop-down). */
+    public static function moneyShort(int $cents): string
+    {
+        return self::number($cents) . ' €';
+    }
+
+    /** Same as creditText() without useless decimals, e.g. "150 unités". */
+    public function creditShort(int $paidCents, int $creditCents): string
+    {
+        return self::number($creditCents) . ' ' . $this->unit($paidCents !== $creditCents);
+    }
+
+    private static function number(int $cents): string
+    {
+        return number_format($cents / 100, $cents % 100 === 0 ? 0 : 2, ',', ' ');
+    }
+
+    /** Euros, e.g. "20,00 €". */
+    public static function money(int $cents): string
+    {
+        return number_format($cents / 100, 2, ',', ' ') . ' €';
+    }
+
+    /** What the account is credited with, in its unit: "150,00 unités", or "20,00 €" when it is simply the payment. */
+    public function creditText(int $paidCents, int $creditCents): string
+    {
+        $unit = $this->unit($paidCents !== $creditCents);
+
+        return number_format($creditCents / 100, 2, ',', ' ') . ' ' . $unit;
+    }
+
+    /** Name of the credited unit: the client's own, else "unités" when it differs from euros, else "€". */
+    private function unit(bool $differs): string
+    {
+        return self::text($this->creditUnit) ?? ($differs ? 'unités' : '€');
     }
 
     /** Page heading: the client's own title, else its name. */

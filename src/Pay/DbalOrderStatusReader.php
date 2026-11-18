@@ -14,7 +14,7 @@ final readonly class DbalOrderStatusReader implements OrderStatusReader
     public function find(string $clientSlug, string $reference): ?PayOrder
     {
         $row = $this->connection->fetchAssociative(
-            'SELECT reference, amount_cents, status, credit_status FROM pay_order_view WHERE client_slug = :slug AND reference = :reference',
+            'SELECT reference, amount_cents, credit_amount_cents, status, credit_status FROM pay_order_view WHERE client_slug = :slug AND reference = :reference',
             ['slug' => $clientSlug, 'reference' => $reference],
         );
 
@@ -27,6 +27,7 @@ final readonly class DbalOrderStatusReader implements OrderStatusReader
             (int) $row['amount_cents'],
             (string) $row['status'],
             $row['credit_status'] === null ? null : (string) $row['credit_status'],
+            isset($row['credit_amount_cents']) ? (int) $row['credit_amount_cents'] : null,
         );
     }
 }

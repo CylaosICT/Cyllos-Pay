@@ -8,19 +8,57 @@
 
     {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
         {{ form_errors(form) }}
-        <div class="field">
-            {{ form_label(form.amount) }}
-            {{ form_widget(form.amount) }}
-            <small>Entre {{ client.minAmount }} € et {{ client.maxAmount }} €.</small>
-            {{ form_errors(form.amount) }}
-        </div>
-        {% if client.suggestedAmounts %}
-            <div class="chips" role="group" aria-label="Montants rapides">
-                {% for value in client.suggestedAmounts %}
-                    <button type="submit" name="quick" value="{{ value }}" class="chip" formnovalidate>{{ value }} €</button>
-                {% endfor %}
+
+        {% if client.fixed %}
+            {# A single amount: nothing to type, just what will be paid and credited. #}
+            {% set offer = client.fixedOffer %}
+            <div class="amount-card">
+                <span class="amount-card__label">Montant à régler</span>
+                <strong class="amount-card__value">{{ client.moneyShort(offer.paidCents) }}</strong>
+                {% if offer.hasDifferentCredit %}
+                    <span class="amount-card__credit">Votre compte sera crédité de <strong>{{ client.creditShort(offer.paidCents, offer.creditCents) }}</strong></span>
+                {% endif %}
             </div>
+
+        {% elseif client.list %}
+            <div class="field">
+                {% if form.offer.vars.expanded %}
+                    <span class="field__label" id="offer-label">Choisissez un montant</span>
+                    <div class="tiles" role="radiogroup" aria-labelledby="offer-label">
+                        {% for choice in form.offer %}
+                            {% set offer = client.offerFor(choice.vars.value + 0) %}
+                            <label class="tile">
+                                {{ form_widget(choice) }}
+                                <span class="tile__body">
+                                    <span class="tile__amount">{{ client.moneyShort(offer.paidCents) }}</span>
+                                    {% if offer.hasDifferentCredit %}<span class="tile__credit">{{ client.creditShort(offer.paidCents, offer.creditCents) }} crédités</span>{% endif %}
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form_label(form.offer, 'Choisissez un montant') }}
+                    {{ form_widget(form.offer, {attr: {class: 'select'}}) }}
+                {% endif %}
+                {{ form_errors(form.offer) }}
+            </div>
+
+        {% else %}
+            <div class="field">
+                {{ form_label(form.amount) }}
+                {{ form_widget(form.amount) }}
+                <small>Entre {{ client.minAmount }} € et {{ client.maxAmount }} €.{% if client.rateText %} {{ client.rateText }}.{% endif %}</small>
+                {{ form_errors(form.amount) }}
+            </div>
+            {% if client.suggestedAmounts %}
+                <div class="chips" role="group" aria-label="Montants rapides">
+                    {% for value in client.suggestedAmounts %}
+                        <button type="submit" name="quick" value="{{ value }}" class="chip" formnovalidate>{{ value }} €</button>
+                    {% endfor %}
+                </div>
+            {% endif %}
         {% endif %}
+
         <button type="submit">Continuer</button>
     {{ form_end(form) }}
     <p><a href="{{ path('pay_confirm', {slug: client.slug}) }}">Retour</a></p>
