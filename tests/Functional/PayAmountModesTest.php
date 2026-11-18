@@ -11,6 +11,7 @@ use App\Pay\PayOrder;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 
 /**
  * The three ways a client can let payers choose the amount (range, list, single
@@ -33,7 +34,7 @@ class PayAmountModesTest extends WebTestCase
         $catalog->method('findBySlug')->willReturnCallback(fn (string $slug): ?PayClient => match ($slug) {
             'list' => new PayClient('list', 'Liste', 5, 250, showConfirmStep: false, amountMode: PayClient::MODE_LIST, offers: [
                 new AmountOffer(5000, 5000), new AmountOffer(10000, 15000), new AmountOffer(20000, 32000),
-            ], creditUnit: 'points'),
+            ], creditUnit: 'point|points'),
             'many' => new PayClient('many', 'Beaucoup', 5, 250, showConfirmStep: false, amountMode: PayClient::MODE_LIST, offers: array_map(
                 static fn (int $n): AmountOffer => new AmountOffer($n * 1000, $n * 1000), range(1, 8),
             )),
@@ -78,13 +79,24 @@ class PayAmountModesTest extends WebTestCase
         self::assertSelectorNotExists('input[type=number]');
     }
 
+    public function testTheClientsOwnUnitNameIsUsedInSingularAndPlural(): void
+    {
+        $client = new PayClient('x', 'X', 5, 250, creditUnit: 'cigogne|cigognes');
+
+        self::assertSame('1 cigogne', $client->creditShort(100, 100));
+        self::assertSame('200 cigognes', $client->creditShort(10000, 20000));
+        self::assertSame('200,00 cigognes', $client->creditText(10000, 20000));
+    }
+
     public function testChoosingAListedAmountShowsPaymentAndCreditOnTheSummary(): void
     {
         $this->cyllos->expects(self::once())->method('start')->with('list', 'payer@example.com', 10000)->willReturn('https://checkout.stripe.com/c/pay/cs_3');
 
         $crawler = $this->reachAmountStep('list');
         $form = $crawler->selectButton('Continuer')->form();
-        $form['form[offer]']->select('10000');
+        $offer = $form['form[offer]'];
+        self::assertInstanceOf(ChoiceFormField::class, $offer);
+        $offer->select('10000');
         $this->browser->submit($form);
         self::assertResponseRedirects('/list/recapitulatif');
 

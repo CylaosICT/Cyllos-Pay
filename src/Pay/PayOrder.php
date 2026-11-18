@@ -44,7 +44,7 @@ final readonly class PayOrder
             self::STAGE_CLOSED => 1,
             self::STAGE_CREDITING => 1,
             self::STAGE_NEEDS_ATTENTION => 2,
-            self::STAGE_CREDITED => 3,
+            default => 3,
         };
     }
 

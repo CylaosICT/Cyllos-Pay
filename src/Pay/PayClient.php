@@ -100,7 +100,7 @@ final readonly class PayClient
     public function rateText(): ?string
     {
         if ($this->isRange() && $this->creditRate !== null && abs($this->creditRate - 1.0) > 0.00001) {
-            return \sprintf('1 € payé = %s %s', rtrim(rtrim(number_format($this->creditRate, 4, ',', ' '), '0'), ','), $this->unit(true));
+            return \sprintf('1 € payé = %s %s', rtrim(rtrim(number_format($this->creditRate, 4, ',', ' '), '0'), ','), $this->unit(true, (int) round($this->creditRate * 100)));
         }
 
         return null;
@@ -115,7 +115,7 @@ final readonly class PayClient
     /** Same as creditText() without useless decimals, e.g. "150 unités". */
     public function creditShort(int $paidCents, int $creditCents): string
     {
-        return self::number($creditCents) . ' ' . $this->unit($paidCents !== $creditCents);
+        return self::number($creditCents) . ' ' . $this->unit($paidCents !== $creditCents, $creditCents);
     }
 
     private static function number(int $cents): string
@@ -132,15 +132,25 @@ final readonly class PayClient
     /** What the account is credited with, in its unit: "150,00 unités", or "20,00 €" when it is simply the payment. */
     public function creditText(int $paidCents, int $creditCents): string
     {
-        $unit = $this->unit($paidCents !== $creditCents);
+        $unit = $this->unit($paidCents !== $creditCents, $creditCents);
 
         return number_format($creditCents / 100, 2, ',', ' ') . ' ' . $unit;
     }
 
-    /** Name of the credited unit: the client's own, else "unités" when it differs from euros, else "€". */
-    private function unit(bool $differs): string
+    /**
+     * Name of the credited unit: the client's own word ("cigogne" or "cigogne|cigognes":
+     * singular below 2 units, plural otherwise), else "unités" when it differs from euros, else "€".
+     */
+    private function unit(bool $differs, int $creditCents): string
     {
-        return self::text($this->creditUnit) ?? ($differs ? 'unités' : '€');
+        $unit = self::text($this->creditUnit);
+        if ($unit === null) {
+            return $differs ? 'unités' : '€';
+        }
+
+        $words = explode('|', $unit);
+
+        return $creditCents < 200 ? $words[0] : ($words[1] ?? $words[0]);
     }
 
     /** Page heading: the client's own title, else its name. */
